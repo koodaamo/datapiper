@@ -20,7 +20,6 @@ def task(operator, successor, meta=None):
    while True:
       previous, data = yield
       meta["previous"] = previous
-      print("running operator %s" % operator.__name__)
       try:
          result = operator(meta, data)
       except Exception as exc:
