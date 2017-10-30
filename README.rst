@@ -3,7 +3,7 @@ Overview
 ===============================
 
 Datapiper provides an easy-to-use yet configurable data batch processing tool
-and a simple framework for data integration applications.
+and a simple pipeline library for use in data integration applications.
 
 Give Datapiper your list of data processor callables and it will construct a
 runnable data pipeline for you.
