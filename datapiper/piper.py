@@ -25,14 +25,27 @@ def piper(ops, source=None, sink=None):
          successor = tsk
 
       # run the generator
-      for data in source:
-         # push each record into the pipeline
-         tasks[0].send((meta, data))
-         yield meta["result"]["data"]
+      def generate(first):
+         for data in source:
+            # push each record into the pipeline
+            first.send((meta, data))
+            yield meta["result"]["data"]
+
+      return generate(tasks[0])
 
    # push mode; operate as a coroutine
    elif sink and not source:
       meta = {}
+      end = ending(meta, sinkcallable=sink)
+      successor = end
+      tasks = [end]
+      for taskop in ops[::-1]:
+         tsk = task(taskop, successor)
+         tasks.insert(0, tsk)
+         successor = tsk
+      begin = beginning(tasks[0], meta)
+      tasks.insert(0, begin)
+      return begin
 
    else:
       raise PipelineException("invalid opertion mode")
