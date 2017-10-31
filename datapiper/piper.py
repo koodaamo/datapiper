@@ -57,7 +57,8 @@ class Piper(object):
       src = "source > " if self.source else ""
       sink = " > sink" if self.sink else ""
       out = src +  ' > '.join([dataop.__name__ for dataop in self.ops]) + sink
-      return out
+      return "pipe: " + out
+
 
    def create_pipeline(self, ops, source=None, sink=None):
       "create and initialize the pipeline"
@@ -88,6 +89,7 @@ class Piper(object):
          self.tasks[0].send(data)
          # and yield the result
          yield self.context["result"]
+
 
    def send(self, data):
       "emulate the coroutine protocol, passing data to the pipeline start"

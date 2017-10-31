@@ -19,6 +19,8 @@ that reads from a source and outputs processed data for you:
    >>> operations = [lambda context, data: data+1]
    >>> datasource = [1,2,3]
    >>> p = Piper(operations, source=datasource)
+   >>> print p
+   pipe: source > <lambda>
    >>> [r for r in p]
    [2,3,4]
 
@@ -32,12 +34,13 @@ that accepts data from a producer and delivers processed data to a sink:
    >>> def datasink(data):
    ...    results.append(data)
    >>> p = Piper(operations, sink=datasink)
-   >>> for v in range(3):
+   >>> print p
+   pipe: <lambda> > sink
+   >>> for v in (1,2,3):
    ...    p.send(v)
    ...
    >>> results
-   [0,1,2] 
-
+   [2,3,4] 
 
 That's all.
 

@@ -33,7 +33,7 @@ def test_pipe_doc():
    "simple documentation test"
 
    p = Piper(ops, sink=datasink)
-   assert str(p) == "op1 > op2 > sink"
+   assert str(p) == "pipe: op1 > op2 > sink"
 
 
 def test_context_setting():
