@@ -54,8 +54,10 @@ class Piper(object):
 
 
    def __str__(self):
-      return ' > '.join([dataop.__name__ for dataop in self.ops])
-
+      src = "source > " if self.source else ""
+      sink = " > sink" if self.sink else ""
+      out = src +  ' > '.join([dataop.__name__ for dataop in self.ops]) + sink
+      return out
 
    def create_pipeline(self, ops, source=None, sink=None):
       "create and initialize the pipeline"
