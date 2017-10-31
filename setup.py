@@ -30,7 +30,6 @@ setup(
     include_package_data=True,
     install_requires=[
         "setuptools",
-        "pyyaml",
     ],
     setup_requires=['pytest-runner'],
     license="GPLv3",
@@ -46,8 +45,5 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'
     ],
-    extras_require={
-       "docs": ["sphinxcontrib.programoutput", "sphinx-better-theme"]
-    },
     tests_require = ["colorama", "pytest"],
 )
