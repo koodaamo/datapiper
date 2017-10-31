@@ -1,11 +1,16 @@
-def op1(meta, data):
+def op1(context, data):
    "define first task operation"
    return (data[0], data[1], 9)
 
-def op2(meta, data):
+def op2(context, data):
    "define second task operation"
    data = list(data)
    data.append(sum(data))
+   return data
+
+def op3(context, data):
+   "define third task operation"
+   context["flag"] = True
    return data
 
 ops = (op1, op2)

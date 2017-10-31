@@ -73,7 +73,7 @@ class Piper(object):
       successor = self.end
 
       for taskop in self.ops[::-1]:
-         tsk = task(taskop, successor)
+         tsk = task(taskop, successor, self.context)
          self.tasks.insert(0, tsk)
          successor = tsk
 
@@ -85,9 +85,9 @@ class Piper(object):
       "provide an iterator for reading the pipeline"
       for data in self.source:
          # push each record into the pipeline
-         self.tasks[0].send((self.context, data))
+         self.tasks[0].send(data)
          # and yield the result
-         yield self.context["result"]["data"]
+         yield self.context["result"]
 
    def send(self, data):
       "emulate the coroutine protocol, passing data to the pipeline start"

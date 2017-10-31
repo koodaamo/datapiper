@@ -1,5 +1,5 @@
 from datapiper.piper import Piper
-from setup import ops, datasource, datasink, expected
+from setup import ops, op3, datasource, datasink, expected
 
 
 def test_simple_generator():
@@ -23,7 +23,7 @@ def test_simple_coroutine():
    results = []
    for d in datasource:
       p.send(d)
-      results.append(p.context["result"]["data"])
+      results.append(p.context["result"])
 
    # check that the outcome is as it should
    assert results == expected
@@ -34,3 +34,13 @@ def test_pipe_doc():
 
    p = Piper(ops, sink=datasink)
    assert str(p) == "op1 > op2 > sink"
+
+
+def test_context_setting():
+   "simple operation-performed context mutation test"
+
+   ops = (op3,)
+   p = Piper(ops, sink=datasink)
+   p.send("test")
+   assert p.context["result"] == "test"
+   assert p.context["flag"] == True
