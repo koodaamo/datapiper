@@ -42,6 +42,9 @@ that accepts data from a producer and delivers processed data to a sink:
    >>> results
    [2,3,4] 
 
-That's all.
+The context parameter passed to the data operations callables is meant for
+sharing state between them. It can be initialized to desired value(s) by  passing
+it to the Piper class as a (optional) keyword argument. The context parameter can
+be anything; a dictionary is recommended.
 
-
+Please see the tests for more examples.

@@ -37,10 +37,12 @@ def test_pipe_doc():
 
 
 def test_context_setting():
-   "simple operation-performed context mutation test"
+   "simple context initialization & mutation test"
 
    ops = (op3,)
-   p = Piper(ops, sink=datasink)
+   c = {"initial": True}
+   p = Piper(ops, sink=datasink, context=c)
    p.send("test")
    assert p.context["result"] == "test"
-   assert p.context["flag"] == True
+   assert p.context["flag"]
+   assert p.context["initial"]

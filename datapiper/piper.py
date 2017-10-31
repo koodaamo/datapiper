@@ -14,15 +14,15 @@ class Piper(object):
    logger = logging.getLogger("piper")
    logger.setLevel(logging.WARN)
 
-   def __init__(self, ops=None, source=None, sink=None):
+   def __init__(self, operations=None, source=None, sink=None, context=None):
       "initialize the piper and (optionally) the pipeline"
 
       self.source = source
-      self.ops = ops
+      self.operations = operations
       self.sink = sink
 
       # pipeline global context
-      self.context = {}
+      self.context = context or {}
 
       # construct the coroutine pipeline, last task first
       self.tasks = []
@@ -32,7 +32,7 @@ class Piper(object):
       except PipelineValidationException:
          self.logger.warn("invalid or missing pipeline; use create_pipeline() to create")
       else:
-         self.create_pipeline(ops, source=source, sink=sink)
+         self.create_pipeline(operations, source=source, sink=sink)
 
 
    def validate_pipeline(self):
@@ -40,7 +40,7 @@ class Piper(object):
 
       errs = []
 
-      if not self.ops:
+      if not self.operations:
          errs.append("no data operations given")
 
       if not (self.source or self.sink):
@@ -56,11 +56,11 @@ class Piper(object):
    def __str__(self):
       src = "source > " if self.source else ""
       sink = " > sink" if self.sink else ""
-      out = src +  ' > '.join([dataop.__name__ for dataop in self.ops]) + sink
+      out = src +  ' > '.join([dataop.__name__ for dataop in self.operations]) + sink
       return "pipe: " + out
 
 
-   def create_pipeline(self, ops, source=None, sink=None):
+   def create_pipeline(self, operations, source=None, sink=None):
       "create and initialize the pipeline"
 
       try:
@@ -69,11 +69,11 @@ class Piper(object):
          self.logger.error(exc)
          return
 
-      self.ops = ops
+      self.operations = operations
       self.end = ending(self.context, sinkcallable=sink)
       successor = self.end
 
-      for taskop in self.ops[::-1]:
+      for taskop in self.operations[::-1]:
          tsk = task(taskop, successor, self.context)
          self.tasks.insert(0, tsk)
          successor = tsk
