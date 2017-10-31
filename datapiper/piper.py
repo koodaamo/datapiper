@@ -1,47 +1,92 @@
 """The data piper implementation"""
 
 import logging
-from .exceptions import PipelineException
+from .exceptions import PipelineValidationException
 from .tasks import beginning, task, ending
 
 
 logging.basicConfig()
 
 
-def piper(ops, source=None, sink=None):
-   "task runner posing as a generator (pull) or a coroutine (push)"
+class Piper(object):
+   "data pipeline runner"
 
-   # pipeline global metadata
-   meta = {}
+   logger = logging.getLogger("piper")
+   logger.setLevel(logging.WARN)
 
-   # construct the coroutine pipeline, last task first
-   end = ending(meta, sinkcallable=sink)
-   tasks = [end]
+   def __init__(self, ops=None, source=None, sink=None):
+      "initialize the piper and (optionally) the pipeline"
 
-   successor = end
+      self.source = source
+      self.ops = ops
+      self.sink = sink
 
-   for taskop in ops[::-1]:
-      tsk = task(taskop, successor)
-      tasks.insert(0, tsk)
-      successor = tsk
+      # pipeline global context
+      self.context = {}
 
-   # pull mode; provide a generator
-   if source and not sink:
+      # construct the coroutine pipeline, last task first
+      self.tasks = []
 
-      def generate(first):
-         for data in source:
-            # push each record into the pipeline
-            first.send((meta, data))
-            # and yield the result
-            yield meta["result"]["data"]
+      try:
+         self.validate_pipeline()
+      except PipelineValidationException:
+         self.logger.warn("invalid or missing pipeline; use create_pipeline() to create")
+      else:
+         self.create_pipeline(ops, source=source, sink=sink)
 
-      return generate(tasks[0])
 
-   # push mode; provide a coroutine
-   elif sink and not source:
-      begin = beginning(tasks[0], meta)
-      tasks.insert(0, begin)
-      return begin # ie. the first task of the pipeline
+   def validate_pipeline(self):
+      "raise PipelineValidationException on invalid pipeline"
 
-   else:
-      raise PipelineException("invalid opertion mode")
+      errs = []
+
+      if not self.ops:
+         errs.append("no data operations given")
+
+      if not (self.source or self.sink):
+         errs.append("no source or sink given")
+
+      if self.source and self.sink:
+         errs.append("cannot use both a data source and a sink")
+
+      if errs:
+         raise PipelineValidationException("invalid pipeline: %s" % ', '.join(errs))
+
+
+   def __str__(self):
+      return ' > '.join([dataop.__name__ for dataop in self.ops])
+
+
+   def create_pipeline(self, ops, source=None, sink=None):
+      "create and initialize the pipeline"
+
+      try:
+         self.validate_pipeline()
+      except PipelineValidationException as exc:
+         self.logger.error(exc)
+         return
+
+      self.ops = ops
+      self.end = ending(self.context, sinkcallable=sink)
+      successor = self.end
+
+      for taskop in self.ops[::-1]:
+         tsk = task(taskop, successor)
+         self.tasks.insert(0, tsk)
+         successor = tsk
+
+      if not source:
+         self.begin = beginning(self.tasks[0], self.context)
+
+
+   def __iter__(self):
+      "provide an iterator for reading the pipeline"
+      for data in self.source:
+         # push each record into the pipeline
+         self.tasks[0].send((self.context, data))
+         # and yield the result
+         yield self.context["result"]["data"]
+
+   def send(self, data):
+      "emulate the coroutine protocol, passing data to the pipeline start"
+      self.begin.send(data)
